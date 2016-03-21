@@ -19,7 +19,7 @@ import android.util.Log;
 public class MyLocationListener implements LocationListener {
 
     private final static String TAG = "AutoTracker";
-    private static final int MIN_UPDATE_INTERVAL_IN_MS = 5 * 1000; // Recommended is 5 minutes (5 * 60 * 1000)
+    private static final int MIN_UPDATE_INTERVAL_IN_MS = 5 * 60 * 1000; // Recommended is 5 minutes (5 * 60 * 1000)
     private static final int MIN_UPDATE_INTERVAL_IN_METERS = 5;
 
     private LocationLogger mLocationLogger = null;
@@ -64,8 +64,8 @@ public class MyLocationListener implements LocationListener {
 
     @Override
     public void onLocationChanged(Location loc) {
-        mDistanceTracker.setNewLocation(loc);
-        mLocationLogger.log(loc);
+        int dist = mDistanceTracker.setNewLocation(loc);
+        mLocationLogger.log(loc, dist);
         DebugLogger.getInstance().log("onLocationChanged called");
     }
 

@@ -12,20 +12,19 @@ public class DistanceTracker {
     private final static String TAG = "AutoTracker";
 
     private Location mPrevLocation = null;
-    private int distanceTraveledPerDay;
-    private int distanceTraveledPerPeriod;
     private MyLocationService context;
 
     public DistanceTracker(MyLocationService c) {
         context = c;
     }
 
-    public void setNewLocation(Location newLoc) {
+    public int setNewLocation(Location newLoc) {
         float[] results = new float[3];
+        int distanceTraveled;
 
         if (mPrevLocation == null) {
             mPrevLocation = new Location(newLoc);
-            return;
+            return 0;
         }
 
         Location.distanceBetween(mPrevLocation.getLatitude(),
@@ -34,12 +33,10 @@ public class DistanceTracker {
                 newLoc.getLongitude(),
                 results);
 
-        distanceTraveledPerDay += (int)results[0];
-        distanceTraveledPerPeriod += (int)results[0];
-        AppData.setDistanceTraveledToday(context, distanceTraveledPerDay);
+        distanceTraveled = AppData.getDistanceTraveledToday(context);
+        distanceTraveled += (int)results[0];
+        AppData.setDistanceTraveledToday(context, distanceTraveled);
         mPrevLocation = new Location(newLoc);
+        return (int)results[0];
     }
-
-    public int getDistanceTraveledPerDay() { return distanceTraveledPerDay; }
-    public int getDistanceTraveledPerPeriod() { return distanceTraveledPerPeriod; }
 }

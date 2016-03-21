@@ -26,7 +26,7 @@ public class DebugLogger {
 
     public void log(String data) {
         Date date = Calendar.getInstance().getTime();
-        CharSequence timestamp = DateFormat.format("EEEE, LLL dd, yyyy", date);
+        CharSequence timestamp = DateFormat.format("yyyy-MM-dd HH:mm:ss ", date);
         logger.log(timestamp+data);
     }
 }

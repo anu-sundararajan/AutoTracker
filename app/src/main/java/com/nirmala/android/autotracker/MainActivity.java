@@ -5,7 +5,9 @@ package com.nirmala.android.autotracker;
 
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -20,6 +22,8 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -100,7 +104,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        int freq;
+        int freq, old_freq;
         switch(position) {
             case 0: freq = 0; break;
             case 1: freq = 1; break;
@@ -108,7 +112,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             case 3: freq = 30; break;
             default: freq = 0;
         }
-        AppData.setAutoSendFreq(this, freq);
+        old_freq = AppData.getAutoSendFreq(this);
+        if (old_freq != freq) {
+            AppData.setAutoSendFreq(this, freq);
+            MyMessengerService.setServiceAlarm(this, true);
+        }
     }
 
     @Override
@@ -121,16 +129,33 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         String phoneNo = mEditTextPhoneNumber.getText().toString();
 
-        if (phoneNo.length() > 0) {
-            AppData.setPhoneNumber(this, phoneNo);
-        } else {
-            Toast.makeText(getBaseContext(),
-                    "Please enter phone number",
-                    Toast.LENGTH_SHORT).show();
+        if (v == mButtonSaveData) {
+            if (AppData.getAutoSendFreq(this) != 0) {
+                if (phoneNo.length() > 0) {
+                    AppData.setPhoneNumber(this, phoneNo);
+                } else {
+                    Toast.makeText(getBaseContext(),
+                            "Please enter phone number",
+                            Toast.LENGTH_SHORT).show();
+                }
+            }
         }
 
         if (v == mButtonSendData) {
-            MyMessenger.sendMessage(phoneNo, "Test Msg from Anu. Please ACK.");
+            Intent i = new Intent(Intent.ACTION_SEND);
+            i.setType("text/plain");
+            i.putExtra(Intent.EXTRA_TEXT, "\nGo to this website:\nhttp://www.hamstermap.com/quickmap.php \nPaste the data in the textbox and click Regenerate");
+            i.putExtra(Intent.EXTRA_SUBJECT, "AutoTracker Location Data");
+            File root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
+            String pathToMyAttachedFile = "AutoTracker/Location.csv";
+            File file = new File(root, pathToMyAttachedFile);
+            if (!file.exists() || !file.canRead()) {
+                return;
+            }
+            Uri uri = Uri.fromFile(file);
+            i.putExtra(Intent.EXTRA_STREAM, uri);
+            i = Intent.createChooser(i, "Pick an Email provider");
+            startActivity(i);
         }
     }
 
