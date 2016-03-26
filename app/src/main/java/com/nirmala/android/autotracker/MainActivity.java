@@ -202,7 +202,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         i.putExtra(Intent.EXTRA_SUBJECT, "AutoTracker Location Data");
         File root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
         ArrayList<Uri> uris = new ArrayList<Uri>();
-        String[] filePaths = new String[] {"AutoTracker/Location.csv", "AutoTracker/DailyDistance.csv"};
+        String[] filePaths = new String[] {
+                "AutoTracker/Location.csv",
+                "AutoTracker/DailyDistance.csv",
+                "AutoTracker/Debug.txt"
+        };
+
         for (String file : filePaths)
         {
             File fileIn = new File(root, file);
