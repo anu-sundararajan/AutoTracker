@@ -10,7 +10,7 @@ import java.util.Date;
  * Created by AXS43 on 3/11/2016.
  */
 public class LocationLogger {
-    private final static String LOCATION_DATAFILE = "Location.csv";
+    public final static String LOCATION_DATAFILE = "Location.csv";
     private MyLogger logger;
 
     public LocationLogger() {

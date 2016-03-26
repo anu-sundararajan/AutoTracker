@@ -33,6 +33,7 @@ public class MyLocationListener implements LocationListener {
         if ( ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED ) {
             //ActivityCompat.requestPermissions(context, new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION}, 12345);
             //Log.e(TAG, "Requested permission to access location data");
+            DebugLogger.getInstance().log("No permission to access location data");
             return null;
         }
 
@@ -40,6 +41,7 @@ public class MyLocationListener implements LocationListener {
                 ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED &&
                 ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             Log.e(TAG, "No permission to access location data");
+            DebugLogger.getInstance().log("No permission to access location data");
             return null;
         }
 
@@ -48,6 +50,7 @@ public class MyLocationListener implements LocationListener {
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_UPDATE_INTERVAL_IN_MS, MIN_UPDATE_INTERVAL_IN_METERS, locationListener, looper);
             DebugLogger.getInstance().log("requested Location Updates");
         }
+        else DebugLogger.getInstance().log("GPS not enabled");
         //else activity.updateStatusMessage("GPS not enabled");
         return locationListener;
     }
@@ -66,21 +69,24 @@ public class MyLocationListener implements LocationListener {
     public void onLocationChanged(Location loc) {
         int dist = mDistanceTracker.setNewLocation(loc);
         mLocationLogger.log(loc, dist);
-        DebugLogger.getInstance().log("onLocationChanged called");
+        //DebugLogger.getInstance().log("onLocationChanged called");
     }
 
     @Override
     public void onProviderDisabled(String provider) {
         // TODO Auto-generated method stub
+        DebugLogger.getInstance().log("Location Listener: onProviderDisabled()");
     }
 
     @Override
     public void onProviderEnabled(String provider) {
         // TODO Auto-generated method stub
+        DebugLogger.getInstance().log("Location Listener: onProviderEnabled()");
     }
 
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
         // TODO Auto-generated method stub
+        DebugLogger.getInstance().log("Location Listener: onStatusChanged() - " + status);
     }
 }

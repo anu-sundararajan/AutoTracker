@@ -23,7 +23,6 @@ public class MyLocationService extends Service {
     Looper mLooper;
 
     public static void startService(Context context) {
-        DebugLogger.getInstance().log("MyLocationService:startService");
         Intent serviceIntent = new Intent(context, MyLocationService.class);
         context.startService(serviceIntent);
     }
@@ -32,7 +31,7 @@ public class MyLocationService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
 
         DebugLogger.getInstance().log("MyLocationService:onStartCommand");
-        Log.e(TAG, "creating handlerthread and looper");
+        Log.e(TAG, "Creating HandlerThread and looper");
         mHandlerThread = new HandlerThread("MyHandlerThread");
         mHandlerThread.start();
         mLooper = mHandlerThread.getLooper();

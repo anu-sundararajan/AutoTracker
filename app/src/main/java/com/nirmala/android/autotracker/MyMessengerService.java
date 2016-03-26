@@ -6,6 +6,10 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.SystemClock;
+import android.text.format.DateFormat;
+
+import java.util.Calendar;
+import java.util.Date;
 
 /**
  * Created by AXS43 on 3/12/2016.
@@ -13,6 +17,8 @@ import android.os.SystemClock;
 public class MyMessengerService extends IntentService {
     private static final String TAG = "AutoTracker";
     //private static final int POLL_INTERVAL = 1000 * 60 * 60 * 4; // 1 Minute = 1000 * 60 * 1
+    public static final String DISTANCE_SUMMARY = "DailyDistance.csv";
+    private MyLogger mDistanceLogger;
 
     public static void setServiceAlarm(Context context, boolean isOn) {
         int auto_send_freq = AppData.getAutoSendFreq(context);
@@ -38,15 +44,20 @@ public class MyMessengerService extends IntentService {
 
     public MyMessengerService() {
         super(TAG);
+        mDistanceLogger = new MyLogger(DISTANCE_SUMMARY);
     }
 
     @Override
     protected void onHandleIntent(Intent intent) {
         int dist = AppData.getDistanceTraveledToday(this);
+        dist = dist / 1000; // Converting from meters to kilometers
         String phoneNo = AppData.getPhoneNumber(this);
-        String msg = "Distance Traveled Today = " + Integer.toString(dist);
+        Date date = Calendar.getInstance().getTime();
+        CharSequence timestamp = DateFormat.format("yyyy-MM-dd HH:mm:ss ", date);
+        String msg = timestamp + " Distance Traveled Today = " + Integer.toString(dist) + " km";
         MyMessenger.sendMessage(phoneNo, msg);
-        DebugLogger.getInstance().log("Called MyMessenger: " + msg);
+        String logmsg = timestamp + "," + dist;
+        mDistanceLogger.log(logmsg);
         AppData.setDistanceTraveledToday(this, 0); // reset the distance
     }
 }

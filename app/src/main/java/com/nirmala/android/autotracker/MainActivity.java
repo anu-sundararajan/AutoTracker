@@ -4,6 +4,8 @@ package com.nirmala.android.autotracker;
 // http://stackoverflow.com/questions/1513485/how-do-i-get-the-current-gps-location-programmatically-in-android
 
 
+import android.app.ActivityManager;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -12,6 +14,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -45,6 +48,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         mTextView = (TextView)findViewById(R.id.textViewLocation);
         mEditTextPhoneNumber = (EditText)findViewById(R.id.editTextPhoneNumber);
+        String phone = AppData.getPhoneNumber(this);
+        if (phone != null) {
+            mEditTextPhoneNumber.setText(phone);
+        }
         mButtonSendData = (Button)findViewById(R.id.buttonSendData);
         mButtonSendData.setOnClickListener(this);
         mButtonSaveData = (Button)findViewById(R.id.buttonSaveData);
@@ -52,7 +59,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         setUpSpinner();
 
-        MyLocationService.startService(this);
+        if (isMyServiceRunning(MyLocationService.class)) {
+            DebugLogger.getInstance().log("Main Activity::OnCreate(): MyLocationService is already running");
+        } else {
+            MyLocationService.startService(this);
+            DebugLogger.getInstance().log("Main Activity::OnCreate(): Started MyLocationService");
+        }
     }
 
     private void setUpSpinner() {
@@ -78,6 +90,20 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         // attaching data adapter to spinner
         spinner.setAdapter(dataAdapter);
 
+        int selection = AppData.getAutoSendFreq(this);
+        spinner.setSelection(selection);
+
+    }
+
+    private boolean isMyServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            //Log.d(TAG, "Service: " + service.service.getClassName());
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -116,6 +142,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         if (old_freq != freq) {
             AppData.setAutoSendFreq(this, freq);
             MyMessengerService.setServiceAlarm(this, true);
+            DebugLogger.getInstance().log("Auto Send Freq was changed to " + freq);
         }
     }
 
@@ -133,6 +160,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             if (AppData.getAutoSendFreq(this) != 0) {
                 if (phoneNo.length() > 0) {
                     AppData.setPhoneNumber(this, phoneNo);
+                    DebugLogger.getInstance().log("Saved phone number: " + phoneNo);
                 } else {
                     Toast.makeText(getBaseContext(),
                             "Please enter phone number",
@@ -142,21 +170,53 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         }
 
         if (v == mButtonSendData) {
-            Intent i = new Intent(Intent.ACTION_SEND);
-            i.setType("text/plain");
-            i.putExtra(Intent.EXTRA_TEXT, "\nGo to this website:\nhttp://www.hamstermap.com/quickmap.php \nPaste the data in the textbox and click Regenerate");
-            i.putExtra(Intent.EXTRA_SUBJECT, "AutoTracker Location Data");
-            File root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
-            String pathToMyAttachedFile = "AutoTracker/Location.csv";
-            File file = new File(root, pathToMyAttachedFile);
-            if (!file.exists() || !file.canRead()) {
-                return;
-            }
+            //emailOneFile();
+            emailMultipleFiles();
+        }
+    }
+
+    private void emailOneFile() {
+        Intent i = new Intent(Intent.ACTION_SEND);
+        i.setType("text/plain");
+        i.putExtra(Intent.EXTRA_TEXT, "\nGo to this website:\nhttp://www.hamstermap.com/quickmap.php \nPaste the data in the textbox and click Regenerate");
+        i.putExtra(Intent.EXTRA_SUBJECT, "AutoTracker Location Data");
+        File root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
+        String pathToMyAttachedFile = "AutoTracker/" + LocationLogger.LOCATION_DATAFILE;
+        File file = new File(root, pathToMyAttachedFile);
+        if (!file.exists() || !file.canRead()) {
+            // Do nothing
+        } else {
             Uri uri = Uri.fromFile(file);
             i.putExtra(Intent.EXTRA_STREAM, uri);
-            i = Intent.createChooser(i, "Pick an Email provider");
-            startActivity(i);
         }
+
+        i = Intent.createChooser(i, "Pick an Email provider");
+        startActivity(i);
+    }
+
+    private void emailMultipleFiles() {
+        // http://stackoverflow.com/questions/2264622/android-multiple-email-attachments-using-intent
+        Intent i = new Intent(Intent.ACTION_SEND_MULTIPLE);
+        i.setType("text/plain");
+        i.putExtra(Intent.EXTRA_TEXT, "\nGo to this website:\nhttp://www.hamstermap.com/quickmap.php \nPaste the data in the textbox and click Regenerate");
+        i.putExtra(Intent.EXTRA_SUBJECT, "AutoTracker Location Data");
+        File root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
+        ArrayList<Uri> uris = new ArrayList<Uri>();
+        String[] filePaths = new String[] {"AutoTracker/Location.csv", "AutoTracker/DailyDistance.csv"};
+        for (String file : filePaths)
+        {
+            File fileIn = new File(root, file);
+            if (!fileIn.exists() || !fileIn.canRead()) {
+                // Do nothing
+            } else {
+                //fileIn.setReadable(true, false);
+                Uri u = Uri.fromFile(fileIn);
+                uris.add(u);
+            }
+        }
+        if (uris.isEmpty()) return;
+        i.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+        startActivity(i);
     }
 
     public void updateStatusMessage(String msg) {
