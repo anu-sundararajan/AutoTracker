@@ -200,7 +200,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         i.setType("text/plain");
         i.putExtra(Intent.EXTRA_TEXT, "\nGo to this website:\nhttp://www.hamstermap.com/quickmap.php \nPaste the data in the textbox and click Regenerate");
         i.putExtra(Intent.EXTRA_SUBJECT, "AutoTracker Location Data");
-        File root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
+        File root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
         ArrayList<Uri> uris = new ArrayList<Uri>();
         String[] filePaths = new String[] {
                 "AutoTracker/Location.csv",

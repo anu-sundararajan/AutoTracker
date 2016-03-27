@@ -21,7 +21,7 @@ public class MyLogger {
         if (Environment.MEDIA_MOUNTED.equals(state)) {
             // Get the directory for the user's public documents directory.
             File folder = new File(Environment.getExternalStoragePublicDirectory(
-                    Environment.DIRECTORY_DOCUMENTS), "AutoTracker");
+                    Environment.DIRECTORY_DOWNLOADS), "AutoTracker");
             if (folder.isDirectory() || folder.mkdirs()) {
                 createOrOpenFile(folder, fileName);
                 return;
